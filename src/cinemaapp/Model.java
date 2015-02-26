@@ -19,14 +19,19 @@ public class Model {
     }
     
     private List<Screen> screendb;
+    private List<Movie> movies;
     ScreenTableGateway gateway;
+    MovieTableGateway movieGateway;
 
     private Model() {
 
         try {
             Connection conn = DBConnection.getInstance();
-            gateway = new ScreenTableGateway(conn);
+            this.gateway = new ScreenTableGateway(conn);
+            this.movieGateway = new MovieTableGateway(conn);
+            
             this.screendb = this.gateway.getScreendb();
+            this.movies = this.movieGateway.getMovies();
         } 
         catch (ClassNotFoundException ex) {
             Logger.getLogger(Model.class.getName()).log(Level.SEVERE, null, ex);
@@ -43,7 +48,7 @@ public class Model {
     public boolean addScreen(Screen s){
         boolean result = false;
         try{
-            int id = this.gateway.insertScreen(s.getName(), s.getNumSeats(), s.getNumExits(), s.getdateNextInspection(), s.getProjectorType());
+            int id = this.gateway.insertScreen(s.getName(), s.getNumSeats(), s.getNumExits(), s.getDateNextInspection(), s.getProjectorType(), s.getMovieId());
             if(id != -1)
             {
                 s.setId(id);
@@ -57,6 +62,23 @@ public class Model {
         
         return result; 
     }
+    
+    public boolean addMovie(Movie m){
+        boolean result = false;
+        try {
+            int m = this.movieGateway.insertScreen(m.getTitle(), m.getYearReleased(), m.getRunTime(), mId.getClassification(), m.getDirector());
+            if(m != -1){
+                m.setId(id);
+                this.movies.add(m);
+                result = true;
+            }
+        }
+        catch (SQLException ex){
+            Logger.getLogger(Model.class.getName()).log(Level.SEVERE, null, ex);
+    }
+        return result;
+    }
+            
     
    public boolean removeScreen(Screen s){
        boolean removed = false;
