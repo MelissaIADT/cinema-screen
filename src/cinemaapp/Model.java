@@ -22,6 +22,7 @@ public class Model {
     private List<Movie> movies;
     ScreenTableGateway gateway;
     MovieTableGateway movieGateway;
+    private Object screenGateway;
 
     private Model() {
 
@@ -63,19 +64,19 @@ public class Model {
         return result; 
     }
     
-    public boolean addMovie(Movie m){
+    public boolean addScreen(Screen s){
         boolean result = false;
         try {
-            int m = this.movieGateway.insertScreen(m.getTitle(), m.getYearReleased(), m.getRunTime(), mId.getClassification(), m.getDirector());
-            if(m != -1){
-                m.setId(id);
-                this.movies.add(m);
+            int id = this.gateway.insertScreen(s.getName(), s.getNumSeats(), s.getNumExits(), s.getDateNextInspection(), s.getProjectorType());
+            if(id != -1){
+                s.setId(id);
+                this.screendb.add(s);
                 result = true;
             }
         }
-        catch (SQLException ex){
+        catch(SQLException ex){
             Logger.getLogger(Model.class.getName()).log(Level.SEVERE, null, ex);
-    }
+        }
         return result;
     }
             
