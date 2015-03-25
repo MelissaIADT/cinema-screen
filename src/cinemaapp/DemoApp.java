@@ -4,9 +4,10 @@ import java.util.List;
 import java.util.Scanner;
 
 public class DemoApp {
+    private static int movieID;
     
-    private static final int NAME_ORDER = 1;
-    private static final int YEAR_ORDER = 2;
+    /*private static final int NAME_ORDER = 1;
+    private static final int YEAR_ORDER = 2;*/
     
     public static void main(String[] args){
         Scanner keyboard = new Scanner(System.in);
@@ -15,7 +16,7 @@ public class DemoApp {
         
         Screen s;
         
-        int opt;
+        int opt = 0;
         do {
             try{
                 model = Model.getInstance();
@@ -55,7 +56,7 @@ public class DemoApp {
 
                     case 3: {
                         System.out.println("Viewing screens..");
-                        viewScreens(model, NAME_ORDER);
+                        viewScreens(model);
                         break;
                     }
                     
@@ -85,7 +86,7 @@ public class DemoApp {
                     
                     case 8: {
                         System.out.println("Viewing movies..");
-                        viewMovies(model, YEAR_ORDER);
+                        viewMovies(model);
                         break;
                     }
                     
@@ -113,7 +114,7 @@ public class DemoApp {
         }
 
          //Create
-         private static void createScreen(Scanner keyboard, Model model){
+         private static void createScreen(Scanner keyboard, Model model) throws DataAccessException{
             Screen s = readScreen(keyboard);
                 if(model.addScreen(s)) {
                     System.out.println("Screen added to database.");
@@ -125,9 +126,8 @@ public class DemoApp {
          }
 
          //Delete
-         private static void deleteScreen(Scanner kb, Model m){
-             System.out.println("Enter the ID of the Screen to delete:");
-             int id = Integer.parseInt(kb.nextLine());
+         private static void deleteScreen(Scanner kb, Model m) throws DataAccessException {
+             int id = getInt(keyboard, "Enter the ID of the Screen to delete:", -1);
              Screen s;
 
              s = m.findScreenByScreenId(id);
@@ -145,9 +145,8 @@ public class DemoApp {
          }
 
          //Edit
-         private static void editScreen(Scanner keyboard, Model model) {
-             System.out.print("Enter the ID of the screen to edit:");
-             int id = Integer.parseInt(keyboard.nextLine());
+         private static void editScreen(Scanner keyboard, Model model) throws DataAccessException {
+             int id = getInt(keyboard, "Enter the ID of the screen to edit:", -1);
              Screen s;
 
              s = model.findScreenByScreenId(id);
@@ -182,30 +181,52 @@ public class DemoApp {
                 }
             }
          }
+         
+         private static void viewScreen(Scanner keyboard, Model model) throws DataAccessException{
+             int id = getInt(keyboard, "Enter the ID of the screen to view:", -1);
+             Screen s;
+             
+             s = model.findScreenByScreenId(id);
+             System.out.println();
+             if(s != null){
+                 Movie m = model.findMovieById(s.getMovieID());
+                 System.out.println("Name       :" + s.getName());
+                 System.out.println("Number of Seats    :" + s.getNumSeats());
+                 System.out.println("Number of Exits    :" + s.getNumExits());
+                 System.out.println("Date of next Inspection    :" + s.getDateNextInspection());
+                 System.out.println("Projector Type     :" + s.getProjectorType());
+                 System.out.println("Movie              :" + ((m != null) ? m.getTitle() : ""));
+             }
+             else{
+                 System.out.println("Screen not found");
+             }
+             System.out.println();
+         }
 
 
          //Reads in the prompt for creating a new screen
          private static Screen readScreen(Scanner keyb){
              String name, dateNextInspection, projectorType;
              int numSeats, numExits;
-             String line = null;
+             String line;
 
              name = getString(keyb, "Enter name:");
-             numSeats = Integer.parseInt(getString(keyb, "Enter number of seats:"));
-             numExits = Integer.parseInt(getString(keyb, "Enter number of exits:"));
+             numSeats = getInt(keyb, "Enter number of seats:" , 0);
+             numExits = getInt(keyb, "Enter number of exits:" , 0);
              dateNextInspection = getString(keyb, "Enter the date of the next inspection:");
              projectorType = getString(keyb, "Enter the projector type:");
+             movieID = getInt(keyb, "Enter movie id (enter -1 for no movie): ", -1);
 
              Screen s = 
-                     new Screen(name, numSeats, numExits, dateNextInspection, projectorType);
+                     new Screen(name, numSeats, numExits, dateNextInspection, projectorType, movieID);
 
              return s;
          }
 
-         private static String getString(Scanner keyboard, String prompt){
+         /*private static String getString(Scanner keyboard, String prompt){
              System.out.println(prompt);
              return keyboard.nextLine();
-         }
+         }*/
 
         private static void editScreenDetails(Scanner keyboard, Screen s) {
             String name, dateNextInspection, projectorType;
@@ -213,20 +234,19 @@ public class DemoApp {
             String line1, line2;
 
             name = getString(keyboard, "Enter name[" + s.getName() + "]: ");
-            line1 = getString(keyboard, "Enter number of seats[" + s.getNumSeats() + "]: ");
-            line2 = getString(keyboard, "Enter number of exits[" + s.getNumExits() + "]: ");
+            numSeats = getInt(keyboard, "Enter number of seats[" + s.getNumSeats() + "]: ", 0);
+            numExits = getInt(keyboard, "Enter number of exits[" + s.getNumExits() + "]: ", 0);
             dateNextInspection = getString(keyboard, "Enter date of next inspection[" + s.getDateNextInspection() + "]: ");
             projectorType = getString(keyboard, "Enter projector type[" + s.getProjectorType() + "]: ");
+            movieID = getInt(keyboard , "Enter movie id (enter -1 for no movie)[" + s.getMovieID() + "]: ", -1);
 
             if(name.length() !=0){
                 s.setName(name);
             }
-            if(line1.length() !=0){
-                numSeats = Integer.parseInt(line1);
+            if(numSeats.length()){
                 s.setNumSeats(numSeats);
             }
-            if(line2.length() !=0){
-                numExits = Integer.parseInt(line2);
+            if(numExits.length()){
                 s.setNumExits(numExits);
             }
             if(dateNextInspection.length() !=0){
@@ -235,17 +255,57 @@ public class DemoApp {
             if(projectorType.length() !=0){
                 s.setProjectorType(projectorType);
             }
+            if(movieID != s.getMovieID()){
+                s.setMovieID(movieID);
+            }
         }
 
-    private static int getInt(Scanner keyboard, String enter_option_, int i) {
+    private static void createMovie(Scanner keyboard, Model model) throws DataAccessException{
+        Movie m = viewMovie(keyboard);
+        if (model.addMovie(m)){
+            System.out.println("Movie added to database.");
+        }
+        else{
+            System.out.println("Movie not added to database.");
+        }
+        System.out.println();
+    }
+
+    private static void deleteMovie(Scanner keyboard, Model model) throws DataAccessException{
+        int movieID = getInt(keyboard, "Enter the ID of the movie to delete:", -1);
+        Movie m;
+        
+        m = model.findMovieById(movieID);
+        if(m != null){
+            if (model.deleteMovie(m)){
+                System.out.println("Movie deleted");
+            }
+            else {
+                System.out.println("Movie not deleted");
+            }
+        }
+        else{
+            System.out.println("Movie not found");
+        }
+    }
+
+    private static void viewMovies(Model model) {
+        List<Movie> movies = model.getMovies();
+        System.out.println();
+        if(movies.isEmpty()){
+            System.out.println("There are no movies in the database.");
+        }
+        else{
+            System.out.printf("%5s %20s %20s %15s\n",
+                    "Id", "Title", )
+        }
+    }
+    //CONTINUE CODE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
+    private static void viewMovie(Scanner keyboard, Model model) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    private static void viewScreens(Model model, int NAME_ORDER) {
+    private static void editMovie(Scanner keyboard, Model model) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-
-    private static void viewScreen(Scanner keyboard, Model model) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-    }
+}
